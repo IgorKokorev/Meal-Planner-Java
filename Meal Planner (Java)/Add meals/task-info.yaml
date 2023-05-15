@@ -209,12 +209,6 @@ files:
       }
     }
   learner_created: false
-- name: src/mealplanner/Meal.java
-  visible: true
-  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/25571#comment
 status: Solved
-feedback:
-  message: Congratulations!
-  time: "Thu, 11 May 2023 14:55:02 UTC"
 record: 1

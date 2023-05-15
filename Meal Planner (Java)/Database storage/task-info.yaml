@@ -2,14 +2,83 @@ type: edu
 files:
 - name: src/mealplanner/Main.java
   visible: true
-  text: |-
+  text: |+
     package mealplanner;
 
+    import java.util.ArrayList;
+    import java.util.Arrays;
+    import java.util.List;
+    import java.util.Scanner;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
+
     public class Main {
+      static Scanner scanner = new Scanner(System.in);
+      static List<Meal> meals = new ArrayList<>();
+      static final List<String> CATEGORIES = Arrays.asList("breakfast", "lunch", "dinner");
+
       public static void main(String[] args) {
-        System.out.println("Hello World!");
+        menu();
+        System.out.println("Bye!");
+      }
+
+      private static void menu() {
+        while (true) {
+          System.out.println("What would you like to do (add, show, exit)?");
+          switch (scanner.nextLine()) {
+            case "add" -> addMeal();
+            case "show" -> showAllMeals();
+            case "exit" -> {
+              return;
+            }
+          }
+        }
+      }
+
+      private static void showAllMeals() {
+        if (meals.size() == 0) System.out.println("No meals saved. Add a meal first.");
+        else meals.forEach(Meal::printMeal);
+      }
+
+      private static void addMeal() {
+
+        String category = null;
+        System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
+        while (true) {
+          category = scanner.nextLine();
+          if (CATEGORIES.contains(category)) break;
+          System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
+        }
+
+        String name = null;
+        System.out.println("Input the meal's name:");
+        while (!isCorrectName(name = scanner.nextLine()))
+          System.out.println("Wrong format. Use letters only!");
+
+        System.out.println("Input the ingredients:");
+        String[] ingredients = new String[0];
+        while (true) {
+          ingredients = scanner.nextLine().split(",[ ]*", -1);
+          if (ingredients.length == 0 ||
+                  Arrays.stream(ingredients)
+                          .map(Main::isCorrectName)
+                          .reduce((b1, b2) -> b1 && b2).get()) {
+            break;
+          }
+          System.out.println("Wrong format. Use letters only!");
+        }
+
+        meals.add(new Meal(category, name, ingredients));
+        System.out.println("The meal has been added!");
+      }
+
+      private static boolean isCorrectName(String s) {
+
+        Pattern p = Pattern.compile("[a-zA-Z ]+");//. represents single character
+        return p.matcher(s).matches();
       }
     }
+
   learner_created: false
 - name: test/MealPlannerTests.java
   visible: false
@@ -467,36 +536,6 @@ files:
       }
     }
   learner_created: false
-- name: src/mealplanner/Meal.java
-  visible: true
-  text: |
-    package mealplanner;
-
-    import java.util.Arrays;
-    import java.sql.*;
-
-    public class Meal {
-        String category;
-        String name;
-        String[] ingredients;
-
-        public Meal(String category, String name, String[] ingredients) {
-            this.category = category;
-            this.name = name;
-            this.ingredients = ingredients;
-        }
-
-        public void printMeal() {
-            System.out.println("\nCategory: " + category);
-            System.out.println("Name: " + name);
-            System.out.println("Ingredients:");
-            Arrays.stream(ingredients).forEach(System.out::println);
-        }
-    }
-  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/25573#comment
 status: Solved
-feedback:
-  message: Congratulations!
-  time: "Mon, 15 May 2023 08:43:00 UTC"
-record: -1
+record: 3

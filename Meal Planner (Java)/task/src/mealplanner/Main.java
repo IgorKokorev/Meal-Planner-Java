@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.sql.*;
+import java.util.stream.Collectors;
 
 
 public class Main {
@@ -105,18 +106,27 @@ public class Main {
 
   private static void showAllMeals() {
     if (meals.size() == 0) System.out.println("No meals saved. Add a meal first.");
-    else meals.forEach(Meal::printMeal);
+    else {
+      System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
+      String category = getCategory();
+
+      List<Meal> selectedMeals = meals.stream()
+              .filter(m -> m.category.equals(category))
+              .toList();
+
+      if (selectedMeals.size() == 0) {
+        System.out.println("No meals found.");
+      } else {
+        System.out.println("Category: " + category);
+        selectedMeals.forEach(Meal::printMeal);
+      }
+    }
   }
 
   private static void addMeal() throws SQLException {
 
-    String category;
     System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
-    while (true) {
-      category = scanner.nextLine();
-      if (CATEGORIES.contains(category)) break;
-      System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
-    }
+    String category = getCategory();
 
     String meal;
     System.out.println("Input the meal's name:");
@@ -167,6 +177,16 @@ public class Main {
     connection.close();
 
     System.out.println("The meal has been added!");
+  }
+
+  private static String getCategory() {
+    String category;
+    while (true) {
+      category = scanner.nextLine();
+      if (CATEGORIES.contains(category)) break;
+      System.out.println("Wrong meal category! Choose from: breakfast, lunch, dinner.");
+    }
+    return category;
   }
 
   private static boolean isCorrectName(String s) {

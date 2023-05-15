@@ -5,9 +5,27 @@ files:
   text: |-
     package mealplanner;
 
+    import java.util.Arrays;
+    import java.util.Scanner;
+
     public class Main {
       public static void main(String[] args) {
-        System.out.println("Hello World!");
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
+        String category = scanner.nextLine();
+
+        System.out.println("Input the meal's name:");
+        String meal = scanner.nextLine();
+
+        System.out.println("Input the ingredients:");
+        String[] ingredients = scanner.nextLine().split(",");
+
+        System.out.println("Category: " + category);
+        System.out.println("Name: " + meal);
+        System.out.println("Ingredients:");
+        Arrays.stream(ingredients).forEach(System.out::println);
+        System.out.println("The meal has been added!");
       }
     }
   learner_created: false
@@ -315,26 +333,6 @@ files:
       }
     }
   learner_created: false
-- name: src/mealplanner/Meal.java
-  visible: true
-  text: |
-    package mealplanner;
-
-    public class Meal {
-        String category;
-        String name;
-        String[] ingredients;
-
-        public Meal(String category, String name, String[] ingredients) {
-            this.category = category;
-            this.name = name;
-            this.ingredients = ingredients;
-        }
-    }
-  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/25572#comment
 status: Solved
-feedback:
-  message: Congratulations!
-  time: "Thu, 11 May 2023 15:50:42 UTC"
 record: 2

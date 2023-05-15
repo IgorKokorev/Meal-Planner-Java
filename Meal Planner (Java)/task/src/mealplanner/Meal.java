@@ -14,7 +14,8 @@ public class Meal {
     }
 
     public void printMeal() {
-        System.out.println("\nCategory: " + category);
+        System.out.println();
+//        System.out.println("Category: " + category);
         System.out.println("Name: " + meal);
         System.out.println("Ingredients:");
         ingredients.forEach(System.out::println);
