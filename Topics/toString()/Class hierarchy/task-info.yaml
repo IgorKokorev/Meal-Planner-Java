@@ -1,0 +1,24 @@
+type: choice
+is_multiple_choice: false
+options:
+- text: Something like <b>Employee@5f205aa</b>
+- text: "Employee{name='Khon,salary=10000000}"
+- text: "Person{name=Khon}"
+- text: "Person{name='Khon,salary=10000000}"
+- text: "Employee{name=Khon}"
+files:
+- name: src/Task.java
+  visible: true
+  text: |
+    // You can experiment here, it won’t be checked
+
+    public class Task {
+      public static void main(String[] args) {
+        // put your code here
+      }
+    }
+  learner_created: false
+feedback_link: https://hyperskill.org/learn/step/3292#comment
+status: Solved
+record: -1
+local_check: false

@@ -2,7 +2,7 @@ package mealplanner;
 
 import java.util.List;
 
-public class Meal {
+public class Meal implements Comparable {
     String category;
     String meal;
     List<String> ingredients;
@@ -25,5 +25,11 @@ public class Meal {
     public boolean equals(Object o) {
         if (!(o instanceof Meal)) return false;
         return this.meal.equals(((Meal) o).meal) && this.category.equals(((Meal) o).category);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (!(o instanceof Meal)) return 1;
+        return this.meal.compareTo(((Meal) o).meal);
     }
 }

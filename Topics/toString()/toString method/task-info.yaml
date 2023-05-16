@@ -1,0 +1,24 @@
+type: choice
+is_multiple_choice: true
+options:
+- text: All classes should always override <b>toString</b>.
+- text: The method is inherited from <b>Object</b>.
+- text: The overridden <b>toString()</b> can return any string you need.
+- text: "If you have a class that does not override <b>toString()</b> and an object\
+    \ <b>obj</b> of this class, the calling <b>obj.toString()</b> throws an exception."
+files:
+- name: src/Task.java
+  visible: true
+  text: |
+    // You can experiment here, it won’t be checked
+
+    public class Task {
+      public static void main(String[] args) {
+        // put your code here
+      }
+    }
+  learner_created: false
+feedback_link: https://hyperskill.org/learn/step/3291#comment
+status: Solved
+record: -1
+local_check: false

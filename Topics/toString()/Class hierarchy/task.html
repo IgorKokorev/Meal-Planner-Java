@@ -1,0 +1,47 @@
+<h2>Class hierarchy</h2>
+<div class="step-text">
+<p>You are given the following class hierarchy:</p>
+
+<p> </p>
+
+<pre><code class="language-java">class Person {
+
+    protected String name;
+
+    public Person(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{name=" + name + "}";
+    }
+}
+
+class Employee extends Person {
+
+    protected long salary;
+
+    public Employee(String name, long salary) {
+        super(name);
+        this.salary = salary;
+    }
+}</code></pre>
+
+<p> </p>
+
+<p>Here is an object of the class:</p>
+
+<p> </p>
+
+<pre><code class="language-java">Employee emp = new Employee("Khon", 10_000_000L);
+</code></pre>
+
+<p> </p>
+
+<p>What does the following invocation return?</p>
+
+<p> </p>
+
+<pre><code class="language-java">emp.toString();</code></pre>
+</div>
