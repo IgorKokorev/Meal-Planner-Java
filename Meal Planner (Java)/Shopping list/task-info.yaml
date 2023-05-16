@@ -883,12 +883,13 @@ files:
 - name: src/mealplanner/WorkWithDB.java
   visible: true
   learner_created: true
+- name: plan.txt
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/learn/step/25576#comment
-status: Failed
+status: Solved
 feedback:
-  message: |-
-    Wrong answer in test #1
-
-    An exception was thrown, while trying to connect to database. PostgreSQL JDBC Driver is not found.
-  time: "Tue, 16 May 2023 13:05:16 UTC"
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">Hyperskill</a>
+    to continue learning.
+  time: "Tue, 16 May 2023 13:20:13 UTC"
 record: -1
