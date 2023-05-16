@@ -73,10 +73,10 @@ public class Main {
         String outFileName = scanner.nextLine();
         FileWriter fw = new FileWriter(outFileName);
         for (String ingredient : shopList.keySet()) {
-            System.out.print(ingredient);
+            fw.write(ingredient);
             int num = shopList.get(ingredient);
-            if (num > 1) System.out.println(" x" + num);
-            else System.out.println();
+            if (num > 1) fw.write(" x" + num);
+            fw.write("\n");
         }
         fw.close();
         System.out.println("Saved!");

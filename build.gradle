@@ -60,6 +60,7 @@ project(':util') {
 
 configure(subprojects.findAll {it.name != 'util'}) {
     dependencies {
+        implementation 'org.postgresql:postgresql:42.5.4'
         testImplementation project(':util').sourceSets.main.output
         testImplementation project(':util').sourceSets.test.output
     }
