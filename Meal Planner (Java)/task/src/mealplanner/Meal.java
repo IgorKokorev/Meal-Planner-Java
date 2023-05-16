@@ -2,7 +2,7 @@ package mealplanner;
 
 import java.util.List;
 
-public class Meal implements Comparable {
+class Meal implements Comparable {
     String category;
     String meal;
     List<String> ingredients;
@@ -19,6 +19,10 @@ public class Meal implements Comparable {
         System.out.println("Name: " + meal);
         System.out.println("Ingredients:");
         ingredients.forEach(System.out::println);
+    }
+
+    public void printName() {
+        System.out.println(this.meal);
     }
 
     @Override

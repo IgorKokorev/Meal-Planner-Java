@@ -1,52 +1,57 @@
 package mealplanner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.sql.*;
 
 public class Main {
-    static Scanner scanner = new Scanner(System.in);
+    // List of meals in DB
     static List<Meal> meals = new ArrayList<>();
+    // Meals categories
     static final int NUM_CAT = 3;
     static final List<String> CATEGORIES = Arrays.asList("breakfast", "lunch", "dinner");
+    // Days for planning
     static final int NUM_DAYS = 7;
     static final List<String> DAYS = Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+    // Meals plan
     static Meal[][] plan = new Meal[NUM_DAYS][NUM_CAT];
-    static String DB_URL = "jdbc:postgresql:meals_db";
-    static String USER = "postgres";
-    static String PASS = "1111";
-    static Connection connection;
-    static Statement statement;
+    static boolean isPlanReady = false;
+    static Map<String, Integer> shopList = new HashMap<>();
 
-    public static void main(String[] args) /*throws SQLException*/ {
+    static Scanner scanner = new Scanner(System.in);
+    // DB connection
+    static WorkWithDB db = new WorkWithDB();
+
+    public static void main(String[] args) {
 
         try {
-            readDB();
+            db.readDB();
         } catch (SQLException e) {
             System.out.println("Error loading DB: " + e.getMessage());
-            e.printStackTrace();
         }
 
         try {
             menu();
         } catch (SQLException e) {
             System.out.println("Error working with DB: " + e.getMessage());
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Error writing file: " + e.getMessage());
         }
 
         System.out.println("Bye!");
     }
 
-    private static void menu() throws SQLException {
+    // Main application menu
+    private static void menu() throws SQLException, IOException {
         while (true) {
-            System.out.println("\nWhat would you like to do (add, show, plan, exit)?");
+            System.out.println("\nWhat would you like to do (add, show, plan, save, exit)?");
             switch (scanner.nextLine()) {
                 case "add" -> addMeal();
                 case "show" -> showAllMeals();
                 case "plan" -> planMeals();
+                case "save" -> savePlan();
                 case "exit" -> {
                     return;
                 }
@@ -54,7 +59,42 @@ public class Main {
         }
     }
 
+    // saving plan to file
+    private static void savePlan() throws IOException {
+        if (!isPlanReady) {
+            System.out.println("Unable to save. Plan your meals first.");
+            return;
+        }
+
+        // creating list of ingredients for the plan with quantity
+        createIngredientsMap();
+
+        System.out.println("Input a filename:");
+        String outFileName = scanner.nextLine();
+        FileWriter fw = new FileWriter(outFileName);
+        for (String ingredient : shopList.keySet()) {
+            System.out.print(ingredient);
+            int num = shopList.get(ingredient);
+            if (num > 1) System.out.println(" x" + num);
+            else System.out.println();
+        }
+        fw.close();
+        System.out.println("Saved!");
+    }
+
+    private static void createIngredientsMap() {
+        for (int day = 0; day < NUM_DAYS; day++) { // every day
+            for (int cat = 0; cat < NUM_CAT; cat++) { // every category
+                for(String ingredient: plan[day][cat].ingredients) { // every ingredient
+                    shopList.put(ingredient, shopList.getOrDefault(ingredient, 0) + 1);
+                }
+            }
+        }
+    }
+
+    // Ask user to plan meals for every day, adds it to plan[][] and saves the plan to DB
     private static void planMeals() throws SQLException {
+        // splitting all meals by categories
         ArrayList<List<Meal>> mealsByCat = new ArrayList<>();
 
         for (int i = 0; i < NUM_CAT; i++) {
@@ -66,60 +106,44 @@ public class Main {
             );
         }
 
-        for (int day = 0; day < NUM_DAYS; day++) {
+        for (int day = 0; day < NUM_DAYS; day++) { // For every day
             System.out.println(DAYS.get(day));
-            for (int cat = 0; cat < NUM_CAT; cat ++) {
-                for (int i = 0; i < mealsByCat.get(cat).size(); i++) {
-                    System.out.println(mealsByCat.get(cat).get(i).meal);
-                }
+
+            for (int cat = 0; cat < NUM_CAT; cat ++) { // For every category
+
+                // Printing names of meals in the category
+                mealsByCat.get(cat).forEach(Meal::printName);
+
+                // Ask to select
                 System.out.println("Choose the " + CATEGORIES.get(cat) + " for " + DAYS.get(day) + " from the list above:");
                 int indx;
-                while (true) {
+                while (true) { // while the input is incorrect
                     String nameMeal = scanner.nextLine();
+                    // getting index from list by the name of meal
                     indx = getMealIndex(nameMeal, mealsByCat.get(cat));
                     if (indx < 0) {
                         System.out.println("This meal doesn’t exist. Choose a meal from the list above.");
                     }
-                    else break;
+                    else break; // the input is correct
                 }
-                plan[day][cat] = mealsByCat.get(cat).get(indx);
+
+                plan[day][cat] = mealsByCat.get(cat).get(indx); // saving selection
             }
+
             System.out.println("Yeah! We planned the meals for " + DAYS.get(day) + ".\n");
         }
 
-        connection = DriverManager.getConnection(DB_URL, USER, PASS);
-        connection.setAutoCommit(true);
-        statement = connection.createStatement();
+        isPlanReady = true;
 
-        statement.executeUpdate("DELETE FROM plan;");
+        // saving plan to DB
+        db.savePlanToDB();
 
-        for (int day = 0; day < NUM_DAYS; day++) {
-            for (int cat = 0; cat < NUM_CAT; cat++) {
-
-                ResultSet rs = statement.executeQuery(
-                        "select meal_id from meals\n" +
-                                "where meal = '" + plan[day][cat].meal + "' and " +
-                                "category = '" + plan[day][cat].category + "';");
-                rs.next();
-                int mead_id = rs.getInt("meal_id");
-
-
-                statement.executeUpdate(
-                        "INSERT INTO plan (day, meal_id, meal, category)\n" +
-                                "VALUES ('" + DAYS.get(day) + "', '" +
-                                mead_id + "', '" +
-                                plan[day][cat].meal + "', '" +
-                                plan[day][cat].category + "');");
-
-            }
-        }
-
-        statement.close();
-        connection.close();
-
+        // printing plan to the console
         printPlan();
     }
 
+
+    // searching meal's index in a list by the name
     private static int getMealIndex(String nameMeal, List<Meal> meals) {
         for (int i = 0; i < meals.size(); i++) {
             if (meals.get(i).meal.equals(nameMeal)) return i;
@@ -127,6 +151,15 @@ public class Main {
         return -1;
     }
 
+    // searching meal's index in a list by the name and category
+    protected static int getMealIndex(String meal, String category, List<Meal> meals) {
+        for (int i = 0; i < meals.size(); i++) {
+            if (meals.get(i).meal.equals(meal) && meals.get(i).category.equals(category)) return i;
+        }
+        return -1;
+    }
+
+    // printing weakly plan
     private static void printPlan() {
         for (int day = 0; day < NUM_DAYS; day++) {
             System.out.println("\n" + DAYS.get(day));
@@ -136,76 +169,11 @@ public class Main {
         }
     }
 
-    private static void readDB() throws SQLException {
-
-        connection = DriverManager.getConnection(DB_URL, USER, PASS);
-        connection.setAutoCommit(true);
-        statement = connection.createStatement();
-
-        statement.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS meals (
-                  meal_id     INT           GENERATED ALWAYS AS IDENTITY,
-                  meal        varchar(30)   NOT NULL,
-                  category    varchar(10)   NOT NULL,
-                PRIMARY KEY(meal_id)
-                );
-                """);
-
-        statement.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS ingredients (
-                  ingredient_id  INT           GENERATED ALWAYS AS IDENTITY,
-                  meal_id        INT           NOT NULL,
-                  ingredient     VARCHAR(30)   NOT NULL,
-                PRIMARY KEY(ingredient_id),
-                CONSTRAINT fk_meal
-                  FOREIGN KEY(meal_id)
-                  REFERENCES meals(meal_id)
-                );
-                """);
-
-      statement.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS plan (
-                  day       varchar(10)   NOT NULL,
-                  meal_id   INT           NOT NULL,
-                  meal      varchar(30)   NOT NULL,
-                  category  varchar(10)   NOT NULL,
-                  CONSTRAINT fk_meal
-                  FOREIGN KEY(meal_id)
-                  REFERENCES meals(meal_id)
-                );
-                """);
-
-        ResultSet rsMeal = statement.executeQuery("select * from meals;");
-
-        while (rsMeal.next()) {
-            String meal = rsMeal.getString("meal");
-            String category = rsMeal.getString("category");
-            int id = rsMeal.getInt("meal_id");
-
-            Statement stIngredients = connection.createStatement();
-            ResultSet rsIngredients = stIngredients.executeQuery(
-                    "select ingredient from ingredients\n" +
-                            "where meal_id = " + id + ";");
-
-            List<String> ingrList = new ArrayList<>();
-            while (rsIngredients.next()) {
-                ingrList.add(rsIngredients.getString("ingredient"));
-            }
-
-            stIngredients.close();
-
-            meals.add(new Meal(category, meal, ingrList));
-        }
-
-
-
-        statement.close();
-        connection.close();
-    }
-
+    // print to the console all the meals in the DB
     private static void showAllMeals() {
         if (meals.size() == 0) System.out.println("No meals saved. Add a meal first.");
         else {
+            // asking for category to print
             System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
             String category = getCategory();
 
@@ -253,30 +221,11 @@ public class Main {
 
         meals.add(newMeal);
 
-        connection = DriverManager.getConnection(DB_URL, USER, PASS);
-        connection.setAutoCommit(true);
-        statement = connection.createStatement();
-
-        statement.executeUpdate(
-                "INSERT INTO meals (meal, category)\n" +
-                        "VALUES ('" + meal + "', '" + category + "');");
-        ResultSet rs = statement.executeQuery(
-                "select meal_id from meals\n" +
-                        "where meal = '" + meal + "' and " +
-                        "category = '" + category + "';");
-        rs.next();
-        int id = rs.getInt("meal_id");
-        for (String ingr : ingredients) {
-            statement.executeUpdate(
-                    "INSERT INTO ingredients (meal_id, ingredient)\n" +
-                            "VALUES ('" + id + "', '" + ingr + "');");
-        }
-
-        statement.close();
-        connection.close();
+        db.addMealToDB(category, meal, ingredients);
 
         System.out.println("The meal has been added!");
     }
+
 
     private static String getCategory() {
         String category;
